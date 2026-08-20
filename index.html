@@ -13,6 +13,13 @@
   #stage canvas{position:absolute;left:0;top:0;display:block;width:1920px;height:1280px;}
   #clock{position:absolute;top:60px;left:0;right:0;display:flex;justify-content:center;gap:80px;
          font-size:20px;color:#161c33;letter-spacing:.04em;}
+  #info{position:absolute;bottom:136px;left:0;right:0;display:flex;flex-direction:column;
+        align-items:center;gap:9px;color:#161c33;}
+  #info p{margin:0;font-size:14px;opacity:.55;letter-spacing:.02em;}
+  #info a{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:#161c33;
+          text-decoration:none;border-bottom:1px solid rgba(22,28,51,.35);padding-bottom:3px;
+          transition:border-color .15s,color .15s;}
+  #info a:hover{color:#e05c2b;border-bottom-color:#e05c2b;}
   #mark{position:absolute;bottom:64px;left:0;right:0;display:flex;justify-content:center;}
   #mark img{height:38px;width:auto;display:block;background:transparent;}
   #ui{position:fixed;right:14px;bottom:14px;z-index:9;font-size:11px;color:#161c33;opacity:.42;
@@ -28,6 +35,10 @@
 <div id="stage">
   <canvas id="c" width="1920" height="1280"></canvas>
   <div id="clock"><span id="d"></span><span id="t"></span></div>
+  <div id="info">
+    <p>Straits builds and runs internet companies.</p>
+    <a href="portfolio.html">View the portfolio &rarr;</a>
+  </div>
   <div id="mark"><img src="straits-wordmark.png" alt="STRAITS" width="173" height="38"></div>
 </div>
 

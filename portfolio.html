@@ -1,0 +1,122 @@
+<meta charset="utf-8">
+<title>STRAITS — Portfolio</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --paper:#faf8f3; --ink:#161c33; --rule:rgba(22,28,51,.16); }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--paper);color:var(--ink);
+            font-family:'Space Mono',ui-monospace,monospace;-webkit-font-smoothing:antialiased;}
+  main{max-width:960px;margin:0 auto;padding:72px 32px 96px;}
+
+  .back{display:inline-block;font-size:12px;letter-spacing:.2em;text-transform:uppercase;
+        color:var(--ink);opacity:.5;text-decoration:none;margin-bottom:56px;}
+  .back:hover{opacity:1;color:#e05c2b;}
+
+  header img{height:38px;width:auto;display:block;}
+  header h1{margin:22px 0 0;font-size:13px;font-weight:400;letter-spacing:.34em;
+            text-transform:uppercase;opacity:.55;}
+  header p{margin:26px 0 0;max-width:46em;font-size:15px;line-height:1.75;opacity:.75;}
+
+  ol{list-style:none;margin:64px 0 0;padding:0;border-top:1px solid var(--rule);}
+  li{border-bottom:1px solid var(--rule);}
+  .row{display:grid;grid-template-columns:26px 20px 1fr auto;gap:0 20px;align-items:baseline;
+       padding:26px 4px;text-decoration:none;color:inherit;}
+  a.row:hover{background:rgba(22,28,51,.035);}
+  .num{font-size:12px;opacity:.35;font-variant-numeric:tabular-nums;}
+  .chip{width:12px;height:12px;align-self:start;margin-top:6px;}
+  .name{font-size:19px;font-weight:700;letter-spacing:.01em;}
+  .what{margin:8px 0 0;font-size:14px;line-height:1.65;opacity:.7;max-width:52em;}
+  .host{font-size:12px;letter-spacing:.08em;opacity:.45;white-space:nowrap;}
+  a.row:hover .host{opacity:1;color:#e05c2b;}
+  .host.none{opacity:.28;}
+
+  footer{margin-top:64px;font-size:12px;line-height:1.9;opacity:.4;}
+
+  @media (max-width:620px){
+    main{padding:48px 20px 72px;}
+    .row{grid-template-columns:20px 12px 1fr;gap:0 14px;}
+    .host{grid-column:3;padding-top:10px;}
+  }
+</style>
+
+<main>
+  <a class="back" href="index.html">&larr; Straits</a>
+
+  <header>
+    <img src="straits-wordmark.png" alt="STRAITS" width="173" height="38">
+    <h1>Portfolio</h1>
+    <p>Companies built and operated by Straits.</p>
+  </header>
+
+  <ol id="list"></ol>
+
+  <footer id="count"></footer>
+</main>
+
+<script>
+/* Edit this list — the page renders straight from it. url is optional. */
+const COMPANIES = [
+  { name: 'Oppler',
+    what: 'An intelligence database of institutional limited partners — pensions, endowments, foundations, sovereign funds, family offices — for GPs raising a fund.',
+    url:  'https://oppler.ai' },
+
+  { name: 'Swenson',
+    what: 'GP performance benchmarking assembled from what limited partners publicly disclose about the funds they hold.',
+    url:  'https://arboralt.com' },
+
+  { name: 'Alister Links',
+    what: 'A directory of private golf clubs in the United States.',
+    url:  'https://alisterlinks.com' },
+
+  { name: 'Tamarin',
+    what: 'Review replies by SMS for local businesses.',
+    url:  'https://mico.re' },
+
+  { name: 'Arbor Coach',
+    what: 'A directory of executive and leadership coaches.',
+    url:  'https://arborcoach.com' },
+
+  { name: 'Maren',
+    what: 'A directory of IVF and fertility clinics, built on reported success-rate data.',
+    url:  null },
+
+  { name: 'Wright',
+    what: 'A directory of residential architects, gated on verified state licensure.',
+    url:  null },
+
+  { name: 'Cardinal Principals',
+    what: 'Description to come.',
+    url:  null }
+];
+
+const CHIPS = ['#e05c2b', '#f0b03c', '#2f9e8f', '#2360a5', '#161c33', '#e8455f'];
+
+const list = document.getElementById('list');
+COMPANIES.forEach((c, i) => {
+  const li = document.createElement('li');
+  const tag = c.url ? 'a' : 'div';
+  const row = document.createElement(tag);
+  row.className = 'row';
+  if (c.url){ row.href = c.url; row.rel = 'noopener'; }
+
+  const host = c.url ? c.url.replace(/^https?:\/\//, '').replace(/\/$/, '') : 'in progress';
+
+  row.innerHTML =
+    '<span class="num">' + String(i + 1).padStart(2, '0') + '</span>' +
+    '<span class="chip" style="background:' + CHIPS[i % CHIPS.length] + '"></span>' +
+    '<span><span class="name"></span><p class="what"></p></span>' +
+    '<span class="host' + (c.url ? '' : ' none') + '"></span>';
+  row.querySelector('.name').textContent = c.name;
+  row.querySelector('.what').textContent = c.what;
+  row.querySelector('.host').textContent = host;
+
+  li.appendChild(row);
+  list.appendChild(li);
+});
+
+document.getElementById('count').textContent =
+  COMPANIES.length + ' companies — ' + COMPANIES.filter(c => c.url).length + ' live.';
+</script>

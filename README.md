@@ -6,7 +6,12 @@ contour-plan projection. Flat riso / screen-print aesthetic. No gradients, no im
 no libraries.
 
 Open `index.html` in a browser. Nothing to build. `straits-wordmark.png` sits next to it
-and is the only asset the page loads (plus the Space Mono webfont).
+and is the only asset the pages load (plus the Space Mono webfont).
+
+`portfolio.html` lists the Straits companies; `index.html` links to it from the info block
+above the wordmark. The roster is the `COMPANIES` array at the top of that page's script —
+`name`, `what`, and an optional `url` (omit it and the row renders unlinked, marked
+"in progress").
 
 ## How it works
 
