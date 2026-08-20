@@ -7,18 +7,20 @@
 <style>
   :root{ --paper:#faf8f3; --ink:#161c33; --rule:rgba(22,28,51,.16); }
   *{box-sizing:border-box;}
-  html,body{margin:0;background:var(--paper);color:var(--ink);
-            font-family:'Space Mono',ui-monospace,monospace;-webkit-font-smoothing:antialiased;}
-  main{max-width:960px;margin:0 auto;padding:72px 32px 96px;}
+  html,body{height:100%;}
+  body{margin:0;overflow:hidden;background:var(--paper);color:var(--ink);
+       font-family:'Space Mono',ui-monospace,monospace;-webkit-font-smoothing:antialiased;}
+  main{max-width:960px;height:100%;margin:0 auto;padding:32px;
+       display:flex;flex-direction:column;justify-content:center;}
 
-  .back{display:inline-block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;
-        color:var(--ink);opacity:.5;text-decoration:none;margin-bottom:56px;}
+  .back{position:fixed;top:26px;left:32px;font-size:10px;letter-spacing:.2em;
+        text-transform:uppercase;color:var(--ink);opacity:.45;text-decoration:none;}
   .back:hover{opacity:1;color:#e05c2b;}
 
   header img{height:38px;width:auto;display:block;}
-  header p{margin:20px 0 0;max-width:46em;font-size:11px;line-height:1.7;opacity:.75;}
+  header p{margin:14px 0 0;max-width:46em;font-size:11px;line-height:1.7;opacity:.75;}
 
-  ol{list-style:none;margin:64px 0 0;padding:0;border-top:1px solid var(--rule);}
+  ol{list-style:none;margin:34px 0 0;padding:0;border-top:1px solid var(--rule);}
   li{border-bottom:1px solid var(--rule);}
   .row{display:grid;grid-template-columns:22px 16px 1fr auto;gap:0 16px;align-items:baseline;
        padding:18px 4px;text-decoration:none;color:inherit;}
@@ -31,6 +33,10 @@
   a.row:hover .host{opacity:1;color:#e05c2b;}
   .host.none{opacity:.28;}
 
+  @media (max-height:640px){
+    body{overflow:auto;}
+    main{height:auto;padding-top:64px;padding-bottom:48px;}
+  }
   @media (max-width:620px){
     main{padding:48px 20px 72px;}
     .row{grid-template-columns:20px 12px 1fr;gap:0 14px;}
@@ -39,7 +45,7 @@
 </style>
 
 <main>
-  <a class="back" href="index.html">&larr; Straits</a>
+  <a class="back" href="index.html">&larr; Back</a>
 
   <header>
     <img src="straits-wordmark.png" alt="STRAITS" width="173" height="38">

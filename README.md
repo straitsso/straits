@@ -9,7 +9,9 @@ Open `index.html` in a browser. Nothing to build. `straits-wordmark.png` sits ne
 and is the only asset the pages load (plus the Space Mono webfont).
 
 `portfolio.html` lists the Straits companies; `index.html` links to it from the info block
-above the wordmark. The roster is the `COMPANIES` array at the top of that page's script —
+above the wordmark. It's a single screen — the list is vertically centered and the page
+doesn't scroll, except under 640px of viewport height where scrolling is re-enabled rather
+than clipping rows. The roster is the `COMPANIES` array at the top of that page's script —
 `name`, `what`, and an optional `url` (omit it and the row renders unlinked, marked
 "in progress").
 
