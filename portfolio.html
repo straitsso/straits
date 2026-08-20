@@ -11,29 +11,25 @@
             font-family:'Space Mono',ui-monospace,monospace;-webkit-font-smoothing:antialiased;}
   main{max-width:960px;margin:0 auto;padding:72px 32px 96px;}
 
-  .back{display:inline-block;font-size:12px;letter-spacing:.2em;text-transform:uppercase;
+  .back{display:inline-block;font-size:11px;letter-spacing:.2em;text-transform:uppercase;
         color:var(--ink);opacity:.5;text-decoration:none;margin-bottom:56px;}
   .back:hover{opacity:1;color:#e05c2b;}
 
   header img{height:38px;width:auto;display:block;}
-  header h1{margin:22px 0 0;font-size:13px;font-weight:400;letter-spacing:.34em;
-            text-transform:uppercase;opacity:.55;}
-  header p{margin:26px 0 0;max-width:46em;font-size:15px;line-height:1.75;opacity:.75;}
+  header p{margin:24px 0 0;max-width:46em;font-size:13px;line-height:1.75;opacity:.75;}
 
   ol{list-style:none;margin:64px 0 0;padding:0;border-top:1px solid var(--rule);}
   li{border-bottom:1px solid var(--rule);}
   .row{display:grid;grid-template-columns:26px 20px 1fr auto;gap:0 20px;align-items:baseline;
        padding:26px 4px;text-decoration:none;color:inherit;}
   a.row:hover{background:rgba(22,28,51,.035);}
-  .num{font-size:12px;opacity:.35;font-variant-numeric:tabular-nums;}
+  .num{font-size:11px;opacity:.35;font-variant-numeric:tabular-nums;}
   .chip{width:12px;height:12px;align-self:start;margin-top:6px;}
-  .name{font-size:19px;font-weight:700;letter-spacing:.01em;}
-  .what{margin:8px 0 0;font-size:14px;line-height:1.65;opacity:.7;max-width:52em;}
-  .host{font-size:12px;letter-spacing:.08em;opacity:.45;white-space:nowrap;}
+  .name{font-size:16px;font-weight:700;letter-spacing:.01em;}
+  .what{margin:7px 0 0;font-size:12.5px;line-height:1.65;opacity:.7;max-width:52em;}
+  .host{font-size:11px;letter-spacing:.08em;opacity:.45;white-space:nowrap;}
   a.row:hover .host{opacity:1;color:#e05c2b;}
   .host.none{opacity:.28;}
-
-  footer{margin-top:64px;font-size:12px;line-height:1.9;opacity:.4;}
 
   @media (max-width:620px){
     main{padding:48px 20px 72px;}
@@ -47,13 +43,10 @@
 
   <header>
     <img src="straits-wordmark.png" alt="STRAITS" width="173" height="38">
-    <h1>Portfolio</h1>
     <p>Companies built and operated by Straits.</p>
   </header>
 
   <ol id="list"></ol>
-
-  <footer id="count"></footer>
 </main>
 
 <script>
@@ -104,7 +97,4 @@ COMPANIES.forEach((c, i) => {
   li.appendChild(row);
   list.appendChild(li);
 });
-
-document.getElementById('count').textContent =
-  COMPANIES.length + ' companies — ' + COMPANIES.filter(c => c.url).length + ' live.';
 </script>
