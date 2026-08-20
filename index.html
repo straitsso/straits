@@ -1,0 +1,396 @@
+<meta charset="utf-8">
+<title>STRAITS</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;height:100%;background:#faf8f3;font-family:'Space Mono',ui-monospace,monospace;}
+  #fit{position:fixed;inset:0;display:grid;place-items:center;overflow:hidden;}
+  #stage{position:relative;width:1920px;height:1280px;background:#faf8f3;overflow:hidden;transform-origin:center center;}
+  #stage canvas{position:absolute;left:0;top:0;display:block;}
+  #clock{position:absolute;top:60px;left:0;right:0;display:flex;justify-content:center;gap:80px;
+         font-size:20px;color:#161c33;letter-spacing:.04em;}
+  #mark{position:absolute;bottom:64px;left:0;right:0;display:flex;justify-content:center;}
+  #mark svg{height:38px;display:block;background:transparent;}
+  #ui{position:fixed;right:14px;bottom:14px;z-index:9;font-size:11px;color:#161c33;opacity:.42;
+      background:rgba(250,248,243,.92);border:1px solid rgba(22,28,51,.18);padding:10px 12px;
+      display:grid;grid-template-columns:auto 108px 34px;gap:6px 10px;align-items:center;transition:opacity .2s;}
+  #ui:hover{opacity:1;}
+  #ui.hid{display:none;}
+  #ui input[type=range]{width:108px;accent-color:#e05c2b;}
+  #ui b{font-weight:400;justify-self:end;font-variant-numeric:tabular-nums;}
+  #ui .hint{grid-column:1/-1;opacity:.6;letter-spacing:.04em;}
+</style>
+
+<div id="fit"><div id="stage">
+  <canvas id="c" width="1920" height="1280"></canvas>
+  <div id="clock"><span id="d"></span><span id="t"></span></div>
+  <div id="mark">
+    <svg viewBox="0 0 340 38" height="38" xmlns="http://www.w3.org/2000/svg">
+      <text x="170" y="29" text-anchor="middle" fill="#161c33"
+            font-family="'Space Mono',monospace" font-size="30" font-weight="700"
+            letter-spacing="7">STRAITS</text>
+    </svg>
+  </div>
+</div></div>
+
+<div id="ui">
+  <label for="spin">spin</label><input id="spin" type="checkbox" checked><b></b>
+  <label for="rev">sec / rev</label><input id="rev" type="range" min="12" max="140" step="1" value="48"><b id="revv">48</b>
+  <label for="step">band step</label><input id="step" type="range" min="5" max="15" step="1" value="10"><b id="stepv">10</b>
+  <label for="dens">stipple</label><input id="dens" type="range" min="0.25" max="2" step="0.05" value="1"><b id="densv">1</b>
+  <label for="seed">seed</label><input id="seed" type="range" min="1" max="40" step="1" value="7"><b id="seedv">7</b>
+  <div class="hint">h — hide panel</div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ---------- stage fit ---------- */
+const stage = document.getElementById('stage');
+function fit(){
+  const s = Math.min(innerWidth / 1920, innerHeight / 1280);
+  stage.style.transform = 'scale(' + s + ')';
+}
+addEventListener('resize', fit); fit();
+
+/* ---------- clock ---------- */
+const dEl = document.getElementById('d'), tEl = document.getElementById('t');
+function tick(){
+  const n = new Date();
+  dEl.textContent = n.toLocaleDateString('en-US');
+  tEl.textContent = n.toLocaleTimeString('en-US', {hour12:false});
+}
+tick(); setInterval(tick, 1000);
+
+/* ---------- height field ---------- */
+const MASSES = [
+  {cx:0.20, cy:0.52, a:0.31, b:0.44, rot: 0.22, amp:56, ph:0},
+  {cx:0.80, cy:0.46, a:0.27, b:0.38, rot:-0.18, amp:44, ph:1.6}
+];
+
+function field(x, y){
+  const al = y - 0.5;
+  const ch = x - 0.5 + 0.07 * Math.sin(2.6 * al + 0.4);
+  const cw = 0.075 + 0.26 * Math.abs(al) + 0.02 * Math.sin(8.2 * al + 1.2);
+  if (Math.abs(ch + 0.025 * Math.sin(11.3 * al)) < cw) return 0;   // the strait
+
+  let h = 0;
+  for (let k = 0; k < MASSES.length; k++){
+    const m = MASSES[k];
+    const dx = x - m.cx, dy = y - m.cy;
+    const c = Math.cos(m.rot), s = Math.sin(m.rot);
+    const u = ( dx * c + dy * s) / m.a;
+    const v = (-dx * s + dy * c) / m.b;
+    let r = Math.hypot(u, v);
+    const th = Math.atan2(v, u);
+    r *= 1 + 0.15 * Math.sin(3.6 * th + 2.1 + m.ph) + 0.09 * Math.sin(8.2 * th - 0.7);
+    if (r >= 1) continue;
+    const base  = Math.pow(1 - r * r, 0.55);
+    const ridge = 0.52 * Math.abs(Math.sin( 7.4 * x +  4.1 * y + m.ph))
+                + 0.30 * Math.abs(Math.sin(13.6 * x -  9.2 * y + 1.9))
+                + 0.10 * Math.abs(Math.sin(24.1 * x + 19.4 * y - 0.6));
+    const hh = m.amp * base * (0.34 + 0.92 * ridge)
+             + 9 * base * Math.abs(Math.sin(5.2 * x - 3.4 * y + 0.5));
+    if (hh > h) h = hh;
+  }
+  return h;
+}
+
+/* ---------- palette ---------- */
+const PAPER   = '#faf8f3';
+const INK     = '#161c33';
+const BANDS   = ['#e05c2b', '#f0b03c', '#2f9e8f', '#2360a5', '#161c33'];
+const ACCENTS = ['#f0b03c', '#e8455f', '#2f9e8f', '#2360a5'];
+
+function mul(hex, f){
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.round(((n >> 16) & 255) * f);
+  const g = Math.round(((n >>  8) & 255) * f);
+  const b = Math.round(( n        & 255) * f);
+  return 'rgb(' + r + ',' + g + ',' + b + ')';
+}
+
+/* ---------- rng ---------- */
+function mulberry32(a){
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+/* ---------- geometry (unit space, rebuilt only on step / seed / density) ---------- */
+const GW = 92, GH = 68, ZMAX = 52;
+let geo = null, geoKey = '';
+
+function build(step, seed, dens){
+  const key = step + '|' + seed + '|' + dens;
+  if (geoKey === key) return;
+  geoKey = key;
+
+  // sample grid
+  const H = new Float32Array((GW + 1) * (GH + 1));
+  for (let j = 0; j <= GH; j++)
+    for (let i = 0; i <= GW; i++)
+      H[j * (GW + 1) + i] = field(i / GW, j / GH);
+  const at = (i, j) => H[j * (GW + 1) + i];
+
+  const levels = [];
+  for (let L = step; L <= ZMAX; L += step) levels.push(L);
+
+  const rng = mulberry32(seed);
+  const out = [];
+
+  for (let li = 0; li < levels.length; li++){
+    const L = levels[li];
+
+    // solid mask: every corner of the cell at or above the level
+    const solid = new Uint8Array(GW * GH);
+    for (let j = 0; j < GH; j++)
+      for (let i = 0; i < GW; i++)
+        solid[j * GW + i] = (at(i,j) >= L && at(i+1,j) >= L && at(i+1,j+1) >= L && at(i,j+1) >= L) ? 1 : 0;
+
+    // run-length strips, cached both ways
+    const rows = [], cols = [];
+    for (let j = 0; j < GH; j++){
+      let i = 0;
+      while (i < GW){
+        if (!solid[j * GW + i]) { i++; continue; }
+        let e = i; while (e + 1 < GW && solid[j * GW + e + 1]) e++;
+        rows.push([i / GW, j / GH, (e + 1) / GW, (j + 1) / GH]);
+        i = e + 1;
+      }
+    }
+    for (let i = 0; i < GW; i++){
+      let j = 0;
+      while (j < GH){
+        if (!solid[j * GW + i]) { j++; continue; }
+        let e = j; while (e + 1 < GH && solid[(e + 1) * GW + i]) e++;
+        cols.push([i / GW, j / GH, (i + 1) / GW, (e + 1) / GH]);
+        j = e + 1;
+      }
+    }
+
+    // marching-squares contour (loose 2-point segments)
+    const segs = [];
+    for (let j = 0; j < GH; j++){
+      for (let i = 0; i < GW; i++){
+        const x0 = i / GW, x1 = (i + 1) / GW, y0 = j / GH, y1 = (j + 1) / GH;
+        const v0 = at(i,j), v1 = at(i+1,j), v2 = at(i+1,j+1), v3 = at(i,j+1);
+        const code = (v0 >= L ? 8 : 0) | (v1 >= L ? 4 : 0) | (v2 >= L ? 2 : 0) | (v3 >= L ? 1 : 0);
+        if (code === 0 || code === 15) continue;
+        const ip = (ax, ay, bx, by, va, vb) => {
+          const t = (L - va) / ((vb - va) || 1e-9);
+          return [ax + (bx - ax) * t, ay + (by - ay) * t];
+        };
+        const top    = () => ip(x0, y0, x1, y0, v0, v1);
+        const right  = () => ip(x1, y0, x1, y1, v1, v2);
+        const bottom = () => ip(x0, y1, x1, y1, v3, v2);
+        const left   = () => ip(x0, y0, x0, y1, v0, v3);
+        switch (code){
+          case 1: case 14: segs.push([left(), bottom()]); break;
+          case 2: case 13: segs.push([bottom(), right()]); break;
+          case 3: case 12: segs.push([left(), right()]); break;
+          case 4: case 11: segs.push([top(), right()]); break;
+          case 6: case  9: segs.push([top(), bottom()]); break;
+          case 7: case  8: segs.push([left(), top()]); break;
+          case 5: segs.push([left(), top()], [bottom(), right()]); break;
+          case 10: segs.push([left(), bottom()], [top(), right()]); break;
+        }
+      }
+    }
+
+    // stipple: seeded candidates kept only inside the upper part of the band
+    const stip = [];
+    const tries = Math.round(300 * dens);
+    const lo = L + 0.12 * step, hi = L + step;
+    for (let n = 0; n < tries; n++){
+      const px = rng(), py = rng(), rr = 5 + rng() * 4;
+      const h = field(px, py);
+      if (h >= lo && h <= hi) stip.push([px, py, rr]);
+    }
+
+    out.push({L: L, rows: rows, cols: cols, segs: segs, stip: stip});
+  }
+
+  geo = {levels: levels, step: step, bands: out};
+}
+
+/* ---------- projection ---------- */
+const AX = 545, AY = 108, BX = -200, BY = 154, ZS = 1.55;
+const O_TOP = [788, 435], O_BOT = [788, 692];
+
+function proj(x, y, z, O, cs, sn){
+  const px = x - 0.5, py = y - 0.5;
+  const rx = px * cs - py * sn + 0.5;
+  const ry = px * sn + py * cs + 0.5;
+  return [O[0] + rx * AX + ry * BX, O[1] + rx * AY + ry * BY - z * ZS];
+}
+
+/* ---------- paint ---------- */
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+
+function poly(p, fill){
+  ctx.beginPath();
+  ctx.moveTo(p[0][0], p[0][1]);
+  for (let i = 1; i < p.length; i++) ctx.lineTo(p[i][0], p[i][1]);
+  ctx.closePath();
+  ctx.fillStyle = fill; ctx.fill();
+  ctx.strokeStyle = fill; ctx.lineWidth = 1; ctx.stroke();   // close hairline seams
+}
+
+function bandColor(i, n){
+  return BANDS[Math.min(BANDS.length - 1, Math.floor(i * BANDS.length / n))];
+}
+
+function draw(th){
+  const cs = Math.cos(th), sn = Math.sin(th);
+  const P = (x, y, z, O) => proj(x, y, z, O, cs, sn);
+  const CORN = [[0,0],[1,0],[1,1],[0,1]];
+
+  ctx.fillStyle = PAPER; ctx.fillRect(0, 0, 1920, 1280);
+
+  poly(CORN.map(c => P(c[0], c[1], 0, O_BOT)), '#efece3');
+  poly(CORN.map(c => P(c[0], c[1], 0, O_TOP)), '#f5f3ec');
+
+  // corner droppers
+  ctx.save();
+  ctx.setLineDash([9, 9]); ctx.lineWidth = 1; ctx.strokeStyle = INK;
+  for (const c of CORN){
+    const a = P(c[0], c[1], 0, O_TOP), b = P(c[0], c[1], 0, O_BOT);
+    ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+  }
+  ctx.restore();
+
+  // plan projection on the lower plane
+  let bead = 0;
+  for (let i = 0; i < geo.bands.length; i++){
+    const b = geo.bands[i], even = i % 2 === 0;
+    ctx.strokeStyle = INK; ctx.lineWidth = even ? 3 : 1.6;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (let s = 0; s < b.segs.length; s++){
+      const g = b.segs[s];
+      const p = P(g[0][0], g[0][1], 0, O_BOT), q = P(g[1][0], g[1][1], 0, O_BOT);
+      ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]);
+    }
+    ctx.stroke();
+    for (let s = 0; s < b.segs.length; s += 9){
+      const g = b.segs[s];
+      const p = P(g[0][0], g[0][1], 0, O_BOT);
+      ctx.fillStyle = ACCENTS[bead++ % ACCENTS.length];
+      if (b.L % 3 === 1){
+        const r = 9;
+        ctx.beginPath();
+        ctx.moveTo(p[0], p[1] - r);
+        ctx.lineTo(p[0] + r * 0.87, p[1] + r * 0.5);
+        ctx.lineTo(p[0] - r * 0.87, p[1] + r * 0.5);
+        ctx.closePath(); ctx.fill();
+      } else {
+        ctx.beginPath(); ctx.arc(p[0], p[1], even ? 8 : 5, 0, 6.2832); ctx.fill();
+      }
+    }
+  }
+
+  // terraces on the upper plane
+  const rowScreenY = Math.abs( AY * cs + BY * sn);   // long edge of a row strip
+  const colScreenY = Math.abs(-AY * sn + BY * cs);   // long edge of a column strip
+  const useRows = rowScreenY <= colScreenY;
+  const drop = geo.step * ZS;
+
+  for (let i = 0; i < geo.bands.length; i++){
+    const b = geo.bands[i];
+    const even = i % 2 === 0;
+    const col = bandColor(i, geo.bands.length);
+    const wall = mul(col, even ? 0.74 : 0.86);
+    const strips = useRows ? b.rows : b.cols;
+
+    const drawn = [];
+    for (let s = 0; s < strips.length; s++){
+      const t = strips[s];
+      const q = [
+        P(t[0], t[1], b.L, O_TOP),
+        P(t[2], t[1], b.L, O_TOP),
+        P(t[2], t[3], b.L, O_TOP),
+        P(t[0], t[3], b.L, O_TOP)
+      ];
+      drawn.push({q: q, y: Math.max(q[0][1], q[1][1], q[2][1], q[3][1])});
+    }
+    drawn.sort((a, c) => a.y - c.y);
+
+    for (let s = 0; s < drawn.length; s++){
+      const q = drawn[s].q;
+      // long edges: 0-1 / 3-2 for rows, 0-3 / 1-2 for columns
+      const e1 = useRows ? [q[0], q[1]] : [q[0], q[3]];
+      const e2 = useRows ? [q[3], q[2]] : [q[1], q[2]];
+      const lower = (e1[0][1] + e1[1][1]) > (e2[0][1] + e2[1][1]) ? e1 : e2;
+      poly([
+        lower[0], lower[1],
+        [lower[1][0], lower[1][1] + drop],
+        [lower[0][0], lower[0][1] + drop]
+      ], wall);
+      poly(q, col);
+    }
+
+    // stipple marks
+    ctx.fillStyle = ACCENTS[(i + 1) % ACCENTS.length];
+    for (let s = 0; s < b.stip.length; s++){
+      const m = b.stip[s];
+      const p = P(m[0], m[1], b.L, O_TOP);
+      if (even){
+        ctx.beginPath(); ctx.arc(p[0], p[1], m[2], 0, 6.2832); ctx.fill();
+      } else {
+        const r = m[2];
+        ctx.beginPath();
+        ctx.moveTo(p[0], p[1] - r);
+        ctx.lineTo(p[0] + r * 0.87, p[1] + r * 0.5);
+        ctx.lineTo(p[0] - r * 0.87, p[1] + r * 0.5);
+        ctx.closePath(); ctx.fill();
+      }
+    }
+  }
+}
+
+/* ---------- controls + loop ---------- */
+const ui = {
+  spin: document.getElementById('spin'),
+  rev:  document.getElementById('rev'),
+  step: document.getElementById('step'),
+  dens: document.getElementById('dens'),
+  seed: document.getElementById('seed')
+};
+const out = {
+  rev:  document.getElementById('revv'),
+  step: document.getElementById('stepv'),
+  dens: document.getElementById('densv'),
+  seed: document.getElementById('seedv')
+};
+function sync(){
+  out.rev.textContent  = ui.rev.value;
+  out.step.textContent = ui.step.value;
+  out.dens.textContent = (+ui.dens.value).toFixed(2);
+  out.seed.textContent = ui.seed.value;
+}
+for (const k in ui) ui[k].addEventListener('input', sync);
+sync();
+
+addEventListener('keydown', e => {
+  if (e.key === 'h' || e.key === 'H') document.getElementById('ui').classList.toggle('hid');
+});
+
+let angle = 0, last = performance.now();
+function frame(now){
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  if (ui.spin.checked) angle += (2 * Math.PI * dt) / (+ui.rev.value);
+  build(+ui.step.value, +ui.seed.value, +ui.dens.value);
+  draw(angle);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+})();
+</script>
