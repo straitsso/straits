@@ -5,7 +5,8 @@ terraced isometric terrain — two landmasses split by a strait — floating abo
 contour-plan projection. Flat riso / screen-print aesthetic. No gradients, no images,
 no libraries.
 
-Open `index.html` in a browser. Nothing to build.
+Open `index.html` in a browser. Nothing to build. `straits-wordmark.png` sits next to it
+and is the only asset the page loads (plus the Space Mono webfont).
 
 ## How it works
 

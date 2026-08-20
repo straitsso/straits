@@ -14,7 +14,7 @@
   #clock{position:absolute;top:60px;left:0;right:0;display:flex;justify-content:center;gap:80px;
          font-size:20px;color:#161c33;letter-spacing:.04em;}
   #mark{position:absolute;bottom:64px;left:0;right:0;display:flex;justify-content:center;}
-  #mark svg{height:38px;display:block;background:transparent;}
+  #mark img{height:38px;width:auto;display:block;background:transparent;}
   #ui{position:fixed;right:14px;bottom:14px;z-index:9;font-size:11px;color:#161c33;opacity:.42;
       background:rgba(250,248,243,.92);border:1px solid rgba(22,28,51,.18);padding:10px 12px;
       display:none;grid-template-columns:auto 108px 34px;gap:6px 10px;align-items:center;transition:opacity .2s;}
@@ -28,13 +28,7 @@
 <div id="stage">
   <canvas id="c" width="1920" height="1280"></canvas>
   <div id="clock"><span id="d"></span><span id="t"></span></div>
-  <div id="mark">
-    <svg viewBox="0 0 340 38" height="38" xmlns="http://www.w3.org/2000/svg">
-      <text x="170" y="29" text-anchor="middle" fill="#161c33"
-            font-family="'Space Mono',monospace" font-size="30" font-weight="700"
-            letter-spacing="7">STRAITS</text>
-    </svg>
-  </div>
+  <div id="mark"><img src="straits-wordmark.png" alt="STRAITS" width="173" height="38"></div>
 </div>
 
 <div id="ui">
