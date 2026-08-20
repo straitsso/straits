@@ -24,6 +24,15 @@ Open `index.html` in a browser. Nothing to build.
 
 ## Controls
 
-Bottom-right panel (press `h` to hide): spin on/off, seconds per revolution (12–140),
+Hidden in production. Open with `?debug=1` or the `h` key: spin on/off, seconds per revolution (12–140),
 band step (5–15), stipple density (0.25–2), seed (1–40). Changing step / density / seed
 rebuilds the geometry; the other two are free.
+
+## Display
+
+The piece is authored on a fixed 1920×1280 stage; nothing inside it moves. The stage is
+scaled by `min(innerWidth/1920, innerHeight/1280)` about its center and centered in the
+viewport on load and resize (a matching negative margin collapses the layout box to the
+scaled size, otherwise the oversized box start-aligns instead of centering). The canvas
+backing store is sized to devicePixelRatio with `setTransform(dpr,0,0,dpr,0,0)`, so all
+drawing stays in 1920×1280 coordinates while staying crisp on hi-dpi displays.

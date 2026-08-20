@@ -5,25 +5,27 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  html,body{margin:0;height:100%;background:#faf8f3;font-family:'Space Mono',ui-monospace,monospace;}
-  #fit{position:fixed;inset:0;display:grid;place-items:center;overflow:hidden;}
-  #stage{position:relative;width:1920px;height:1280px;background:#faf8f3;overflow:hidden;transform-origin:center center;}
-  #stage canvas{position:absolute;left:0;top:0;display:block;}
+  html{margin:0;}
+  body{margin:0;height:100vh;display:grid;place-items:center;background:#f2efe8;overflow:hidden;
+       font-family:'Space Mono',ui-monospace,monospace;}
+  #stage{position:relative;flex:none;width:1920px;height:1280px;background:#faf8f3;overflow:hidden;
+         transform-origin:center center;}
+  #stage canvas{position:absolute;left:0;top:0;display:block;width:1920px;height:1280px;}
   #clock{position:absolute;top:60px;left:0;right:0;display:flex;justify-content:center;gap:80px;
          font-size:20px;color:#161c33;letter-spacing:.04em;}
   #mark{position:absolute;bottom:64px;left:0;right:0;display:flex;justify-content:center;}
   #mark svg{height:38px;display:block;background:transparent;}
   #ui{position:fixed;right:14px;bottom:14px;z-index:9;font-size:11px;color:#161c33;opacity:.42;
       background:rgba(250,248,243,.92);border:1px solid rgba(22,28,51,.18);padding:10px 12px;
-      display:grid;grid-template-columns:auto 108px 34px;gap:6px 10px;align-items:center;transition:opacity .2s;}
+      display:none;grid-template-columns:auto 108px 34px;gap:6px 10px;align-items:center;transition:opacity .2s;}
   #ui:hover{opacity:1;}
-  #ui.hid{display:none;}
+  #ui.on{display:grid;}   /* debug only: ?debug=1 or the h key */
   #ui input[type=range]{width:108px;accent-color:#e05c2b;}
   #ui b{font-weight:400;justify-self:end;font-variant-numeric:tabular-nums;}
   #ui .hint{grid-column:1/-1;opacity:.6;letter-spacing:.04em;}
 </style>
 
-<div id="fit"><div id="stage">
+<div id="stage">
   <canvas id="c" width="1920" height="1280"></canvas>
   <div id="clock"><span id="d"></span><span id="t"></span></div>
   <div id="mark">
@@ -33,7 +35,7 @@
             letter-spacing="7">STRAITS</text>
     </svg>
   </div>
-</div></div>
+</div>
 
 <div id="ui">
   <label for="spin">spin</label><input id="spin" type="checkbox" checked><b></b>
@@ -41,7 +43,7 @@
   <label for="step">band step</label><input id="step" type="range" min="5" max="15" step="1" value="10"><b id="stepv">10</b>
   <label for="dens">stipple</label><input id="dens" type="range" min="0.25" max="2" step="0.05" value="1"><b id="densv">1</b>
   <label for="seed">seed</label><input id="seed" type="range" min="1" max="40" step="1" value="7"><b id="seedv">7</b>
-  <div class="hint">h — hide panel</div>
+  <div class="hint">h — toggle panel</div>
 </div>
 
 <script>
@@ -50,9 +52,21 @@
 
 /* ---------- stage fit ---------- */
 const stage = document.getElementById('stage');
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+let dpr = 1;
+
 function fit(){
-  const s = Math.min(innerWidth / 1920, innerHeight / 1280);
-  stage.style.transform = 'scale(' + s + ')';
+  const k = Math.min(innerWidth / 1920, innerHeight / 1280);
+  stage.style.transform = 'scale(' + k + ')';
+  // transform doesn't shrink the layout box; without this the 1920x1280 box overflows
+  // the viewport and grid centering start-aligns it instead of centering.
+  stage.style.margin = ((1280 * k - 1280) / 2) + 'px ' + ((1920 * k - 1920) / 2) + 'px';
+  const d = window.devicePixelRatio || 1;
+  if (d !== dpr){                       // backing store follows the display, CSS size stays 1920x1280
+    dpr = d;
+    cv.width  = Math.round(1920 * dpr);
+    cv.height = Math.round(1280 * dpr);
+  }
 }
 addEventListener('resize', fit); fit();
 
@@ -232,8 +246,6 @@ function proj(x, y, z, O, cs, sn){
 }
 
 /* ---------- paint ---------- */
-const cv = document.getElementById('c'), ctx = cv.getContext('2d');
-
 function poly(p, fill){
   ctx.beginPath();
   ctx.moveTo(p[0][0], p[0][1]);
@@ -252,6 +264,7 @@ function draw(th){
   const P = (x, y, z, O) => proj(x, y, z, O, cs, sn);
   const CORN = [[0,0],[1,0],[1,1],[0,1]];
 
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.fillStyle = PAPER; ctx.fillRect(0, 0, 1920, 1280);
 
   poly(CORN.map(c => P(c[0], c[1], 0, O_BOT)), '#efece3');
@@ -378,8 +391,10 @@ function sync(){
 for (const k in ui) ui[k].addEventListener('input', sync);
 sync();
 
+const panel = document.getElementById('ui');
+if (/[?&]debug=1\b/.test(location.search)) panel.classList.add('on');
 addEventListener('keydown', e => {
-  if (e.key === 'h' || e.key === 'H') document.getElementById('ui').classList.toggle('hid');
+  if (e.key === 'h' || e.key === 'H') panel.classList.toggle('on');
 });
 
 let angle = 0, last = performance.now();
