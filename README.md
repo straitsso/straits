@@ -8,8 +8,8 @@ no libraries.
 Open `index.html` in a browser. Nothing to build. `straits-wordmark.png` sits next to it
 and is the only asset the pages load (plus the Space Mono webfont).
 
-`portfolio.html` lists the Straits companies; `index.html` links to it from the info block
-above the wordmark. It's a single centered screen on a desktop window; under 640px of
+`portfolio.html` lists the Straits companies; `index.html` links to it from the top row,
+next to the date and time. It's a single centered screen on a desktop window; under 640px of
 viewport height or 620px of width the type steps up and the page scrolls rather than
 clipping rows out of the centered box. The roster is the `COMPANIES` array at the top of that page's script —
 `name`, `what`, and an optional `url` (omit it and the row renders unlinked, marked
@@ -39,7 +39,7 @@ rebuilds the geometry; the other two are free.
 ## Display
 
 The piece is authored on a fixed 1920×1280 board; nothing inside it moves. The board and the
-chrome (clock, info, wordmark) are two overlaid boards of that size, each placed by mapping one
+chrome (the top row, the wordmark) are two overlaid boards of that size, each placed by mapping one
 anchor point of the board onto one point of the viewport: `translate(cx,cy) scale(k) translate(-ax,-ay)`
 off a `0 0` origin. Every layout below is a choice of anchor, target and scale.
 
