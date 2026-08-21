@@ -80,6 +80,8 @@ let dpr = 1;
 // The drawing never fills the 1920x1280 board: at its widest rotation the two planes
 // span about x 434..1487, y 300..1010. Small screens fit that box, not the whole board.
 const ART_W = 1080, ART_H = 780, ART_X = 960, ART_Y = 655;
+// board pixels the art rides above its centre line, on either layout
+const LIFT = 64;
 
 // map stage point (ax, ay) onto viewport point (cx, cy) at scale k
 function place(el, k, ax, ay, cx, cy){
@@ -104,10 +106,10 @@ function fit(){
     const bot = h - infoEl.getBoundingClientRect().top + 14;
     const mid = Math.max(140, h - top - bot);
     k = Math.min(w / ART_W, mid / ART_H);
-    place(stage, k, ART_X, ART_Y, w / 2, top + mid / 2);
+    place(stage, k, ART_X, ART_Y + LIFT, w / 2, top + mid / 2);
   } else {
     k = Math.min(w / 1920, h / 1280);
-    place(stage, k, 960, 640, w / 2, h / 2);
+    place(stage, k, 960, 640 + LIFT, w / 2, h / 2);
     place(hud,   k, 960, 640, w / 2, h / 2);
     hud.style.width = ''; hud.style.height = '';
   }

@@ -44,7 +44,8 @@ anchor point of the board onto one point of the viewport: `translate(cx,cy) scal
 off a `0 0` origin. Every layout below is a choice of anchor, target and scale.
 
 - **Desktop** — anchor the board center on the viewport center at `k = min(w/1920, h/1280)`.
-  Chrome rides the same transform, so it scales with the art exactly as authored.
+  Chrome rides the same transform, so it scales with the art exactly as authored — except that
+  the art board alone is raised `LIFT` (64) board pixels off that center line, on both layouts.
 - **Small screens** (under 820px wide or 560px tall) — the chrome leaves the board and sits
   unscaled against the viewport, in a band top and bottom; `fit()` measures what those bands
   actually occupy (webfont, wrapping, `env(safe-area-inset-*)`) and gives the canvas the middle.
