@@ -1,20 +1,26 @@
 <meta charset="utf-8">
 <title>STRAITS</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  html{margin:0;}
-  body{margin:0;height:100vh;display:grid;place-items:center;background:#faf8f3;overflow:hidden;
-       font-family:'Space Mono',ui-monospace,monospace;}
-  #stage{position:relative;flex:none;width:1920px;height:1280px;background:#faf8f3;overflow:hidden;
-         transform-origin:center center;}
+  html,body{margin:0;height:100%;}
+  body{background:#faf8f3;overflow:hidden;overscroll-behavior:none;touch-action:none;
+       -webkit-text-size-adjust:100%;font-family:'Space Mono',ui-monospace,monospace;}
+
+  /* stage + chrome are both 1920x1280 boards; JS maps an anchor point of each
+     onto a viewport point with translate/scale, so nothing depends on the box size. */
+  #stage,#chrome{position:fixed;left:0;top:0;width:1920px;height:1280px;transform-origin:0 0;}
+  #stage{background:#faf8f3;}
   #stage canvas{position:absolute;left:0;top:0;display:block;width:1920px;height:1280px;}
+  #chrome{color:#161c33;pointer-events:none;}
+  #chrome a{pointer-events:auto;touch-action:manipulation;}
+
   #clock{position:absolute;top:60px;left:0;right:0;display:flex;justify-content:center;gap:80px;
-         font-size:20px;color:#161c33;letter-spacing:.04em;}
+         font-size:20px;letter-spacing:.04em;}
   #info{position:absolute;bottom:136px;left:0;right:0;display:flex;flex-direction:column;
-        align-items:center;gap:9px;color:#161c33;}
+        align-items:center;gap:9px;}
   #info p{margin:0;font-size:14px;opacity:.55;letter-spacing:.02em;}
   #info a{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:#161c33;
           text-decoration:none;border-bottom:1px solid rgba(22,28,51,.35);padding-bottom:3px;
@@ -22,18 +28,31 @@
   #info a:hover{color:#e05c2b;border-bottom-color:#e05c2b;}
   #mark{position:absolute;bottom:64px;left:0;right:0;display:flex;justify-content:center;}
   #mark img{height:38px;width:auto;display:block;background:transparent;}
+
+  /* small screens: the chrome leaves the scaled board and sits at real size on the
+     viewport, top and bottom, while the canvas keeps only the middle band. */
+  .m #chrome{width:100%;height:100%;}
+  .m #clock{top:calc(16px + env(safe-area-inset-top));gap:24px;font-size:11px;
+            letter-spacing:.1em;opacity:.5;}
+  .m #info{bottom:calc(78px + env(safe-area-inset-bottom));gap:14px;padding:0 26px;}
+  .m #info p{font-size:12px;line-height:1.6;text-align:center;max-width:32em;}
+  .m #info a{font-size:11px;letter-spacing:.18em;}
+  .m #mark{bottom:calc(28px + env(safe-area-inset-bottom));}
+  .m #mark img{height:26px;}
+
   #ui{position:fixed;right:14px;bottom:14px;z-index:9;font-size:11px;color:#161c33;opacity:.42;
       background:rgba(250,248,243,.92);border:1px solid rgba(22,28,51,.18);padding:10px 12px;
       display:none;grid-template-columns:auto 108px 34px;gap:6px 10px;align-items:center;transition:opacity .2s;}
   #ui:hover{opacity:1;}
   #ui.on{display:grid;}   /* debug only: ?debug=1 or the h key */
-  #ui input[type=range]{width:108px;accent-color:#e05c2b;}
+  #ui input[type=range]{width:108px;accent-color:#e05c2b;touch-action:auto;}
   #ui b{font-weight:400;justify-self:end;font-variant-numeric:tabular-nums;}
   #ui .hint{grid-column:1/-1;opacity:.6;letter-spacing:.04em;}
 </style>
 
-<div id="stage">
-  <canvas id="c" width="1920" height="1280"></canvas>
+<div id="stage"><canvas id="c" width="1920" height="1280"></canvas></div>
+
+<div id="chrome">
   <div id="clock"><span id="d"></span><span id="t"></span></div>
   <div id="info">
     <p>Straits builds and runs internet companies.</p>
@@ -50,30 +69,71 @@
   <label for="seed">seed</label><input id="seed" type="range" min="1" max="40" step="1" value="7"><b id="seedv">7</b>
   <div class="hint">h — toggle panel</div>
 </div>
-
 <script>
 (() => {
 'use strict';
 
-/* ---------- stage fit ---------- */
+/* ---------- layout ---------- */
 const stage = document.getElementById('stage');
+const hud = document.getElementById('chrome');
+const clockEl = document.getElementById('clock'), infoEl = document.getElementById('info');
 const cv = document.getElementById('c'), ctx = cv.getContext('2d');
 let dpr = 1;
 
+// The drawing never fills the 1920x1280 board: at its widest rotation the two planes
+// span about x 434..1487, y 300..1010. Small screens fit that box, not the whole board.
+const ART_W = 1080, ART_H = 780, ART_X = 960, ART_Y = 655;
+
+// map stage point (ax, ay) onto viewport point (cx, cy) at scale k
+function place(el, k, ax, ay, cx, cy){
+  el.style.transform = 'translate(' + cx + 'px,' + cy + 'px) scale(' + k + ') ' +
+                       'translate(' + (-ax) + 'px,' + (-ay) + 'px)';
+}
+
 function fit(){
-  const k = Math.min(innerWidth / 1920, innerHeight / 1280);
-  stage.style.transform = 'scale(' + k + ')';
-  // transform doesn't shrink the layout box; without this the 1920x1280 box overflows
-  // the viewport and grid centering start-aligns it instead of centering.
-  stage.style.margin = ((1280 * k - 1280) / 2) + 'px ' + ((1920 * k - 1920) / 2) + 'px';
-  const d = window.devicePixelRatio || 1;
-  if (d !== dpr){                       // backing store follows the display, CSS size stays 1920x1280
+  const vv = window.visualViewport;
+  const w = Math.round(vv ? vv.width  : innerWidth);
+  const h = Math.round(vv ? vv.height : innerHeight);
+  const small = w < 820 || h < 560;
+  document.documentElement.classList.toggle('m', small);
+
+  let k;
+  if (small){
+    hud.style.transform = '';
+    hud.style.width = w + 'px'; hud.style.height = h + 'px';
+    // the chrome sits unscaled in a band top and bottom; measure what those bands
+    // actually take (font, wrapping, safe areas) and give the canvas the rest
+    const top = clockEl.getBoundingClientRect().bottom + 14;
+    const bot = h - infoEl.getBoundingClientRect().top + 14;
+    const mid = Math.max(140, h - top - bot);
+    k = Math.min(w / ART_W, mid / ART_H);
+    place(stage, k, ART_X, ART_Y, w / 2, top + mid / 2);
+  } else {
+    k = Math.min(w / 1920, h / 1280);
+    place(stage, k, 960, 640, w / 2, h / 2);
+    place(hud,   k, 960, 640, w / 2, h / 2);
+    hud.style.width = ''; hud.style.height = '';
+  }
+
+  // Backing store follows the device pixels the board actually covers, so the canvas is
+  // never oversampled -- at 3x a phone would otherwise allocate a 5760x3840 (~88MB) buffer.
+  const d = Math.min(2.5, Math.max(1, Math.round(k * (devicePixelRatio || 1) * 20) / 20));
+  if (d !== dpr){                       // CSS size stays 1920x1280 either way
     dpr = d;
     cv.width  = Math.round(1920 * dpr);
     cv.height = Math.round(1280 * dpr);
   }
 }
-addEventListener('resize', fit); fit();
+addEventListener('resize', fit);
+addEventListener('orientationchange', fit);
+if (document.fonts) document.fonts.ready.then(fit);   // the bands resize with the webfont
+if (window.visualViewport) visualViewport.addEventListener('resize', fit);
+fit();
+
+/* ---------- hold the zoom (iOS ignores user-scalable=no) ---------- */
+for (const g of ['gesturestart', 'gesturechange', 'gestureend'])
+  addEventListener(g, e => e.preventDefault(), {passive:false});
+addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, {passive:false});
 
 /* ---------- clock ---------- */
 const dEl = document.getElementById('d'), tEl = document.getElementById('t');

@@ -1,19 +1,23 @@
 <meta charset="utf-8">
 <title>STRAITS — Portfolio</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{ --paper:#faf8f3; --ink:#161c33; --rule:rgba(22,28,51,.16); }
   *{box-sizing:border-box;}
-  html,body{height:100%;}
-  body{margin:0;overflow:hidden;background:var(--paper);color:var(--ink);
+  html,body{height:100%;height:100dvh;}
+  body{margin:0;overflow:hidden;overscroll-behavior:none;touch-action:pan-y;
+       -webkit-text-size-adjust:100%;background:var(--paper);color:var(--ink);
        font-family:'Space Mono',ui-monospace,monospace;-webkit-font-smoothing:antialiased;}
-  main{max-width:960px;height:100%;margin:0 auto;padding:32px;
+  main{max-width:960px;height:100%;margin:0 auto;
+       padding:32px calc(32px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom))
+               calc(32px + env(safe-area-inset-left));
        display:flex;flex-direction:column;justify-content:center;}
 
-  .back{position:fixed;top:26px;left:32px;font-size:10px;letter-spacing:.2em;
+  .back{position:fixed;top:calc(26px + env(safe-area-inset-top));
+        left:calc(32px + env(safe-area-inset-left));touch-action:manipulation;font-size:10px;letter-spacing:.2em;
         text-transform:uppercase;color:var(--ink);opacity:.45;text-decoration:none;}
   .back:hover{opacity:1;color:#e05c2b;}
 
@@ -33,13 +37,23 @@
   a.row:hover .host{opacity:1;color:#e05c2b;}
   .host.none{opacity:.28;}
 
+  /* Short windows and phones: the roster is taller than the screen, so let it
+     scroll rather than clipping rows out of a centred, overflowing flex box. */
+  @media (max-height:640px), (max-width:620px){
+    html,body{height:auto;min-height:100%;}
+    body{overflow:visible;}
+    main{height:auto;justify-content:flex-start;}
+  }
   @media (max-height:640px){
-    body{overflow:auto;}
-    main{height:auto;padding-top:64px;padding-bottom:48px;}
+    main{padding-top:64px;padding-bottom:48px;}
   }
   @media (max-width:620px){
-    main{padding:48px 20px 72px;}
-    .row{grid-template-columns:20px 12px 1fr;gap:0 14px;}
+    main{padding:calc(64px + env(safe-area-inset-top)) calc(20px + env(safe-area-inset-right))
+                 calc(56px + env(safe-area-inset-bottom)) calc(20px + env(safe-area-inset-left));}
+    header p{font-size:12px;}
+    .row{grid-template-columns:20px 12px 1fr;gap:0 14px;padding:16px 2px;}
+    .name{font-size:14px;}
+    .what{font-size:12px;}
     .host{grid-column:3;padding-top:10px;}
   }
 </style>
@@ -56,6 +70,11 @@
 </main>
 
 <script>
+/* iOS ignores user-scalable=no; block the pinch and keep the page steady. */
+for (const g of ['gesturestart', 'gesturechange', 'gestureend'])
+  addEventListener(g, e => e.preventDefault(), {passive:false});
+addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, {passive:false});
+
 /* Edit this list — the page renders straight from it. url is optional. */
 const COMPANIES = [
   { name: 'Oppler',

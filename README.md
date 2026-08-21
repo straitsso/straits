@@ -9,9 +9,9 @@ Open `index.html` in a browser. Nothing to build. `straits-wordmark.png` sits ne
 and is the only asset the pages load (plus the Space Mono webfont).
 
 `portfolio.html` lists the Straits companies; `index.html` links to it from the info block
-above the wordmark. It's a single screen — the list is vertically centered and the page
-doesn't scroll, except under 640px of viewport height where scrolling is re-enabled rather
-than clipping rows. The roster is the `COMPANIES` array at the top of that page's script —
+above the wordmark. It's a single centered screen on a desktop window; under 640px of
+viewport height or 620px of width the type steps up and the page scrolls rather than
+clipping rows out of the centered box. The roster is the `COMPANIES` array at the top of that page's script —
 `name`, `what`, and an optional `url` (omit it and the row renders unlinked, marked
 "in progress").
 
@@ -38,9 +38,25 @@ rebuilds the geometry; the other two are free.
 
 ## Display
 
-The piece is authored on a fixed 1920×1280 stage; nothing inside it moves. The stage is
-scaled by `min(innerWidth/1920, innerHeight/1280)` about its center and centered in the
-viewport on load and resize (a matching negative margin collapses the layout box to the
-scaled size, otherwise the oversized box start-aligns instead of centering). The canvas
-backing store is sized to devicePixelRatio with `setTransform(dpr,0,0,dpr,0,0)`, so all
-drawing stays in 1920×1280 coordinates while staying crisp on hi-dpi displays.
+The piece is authored on a fixed 1920×1280 board; nothing inside it moves. The board and the
+chrome (clock, info, wordmark) are two overlaid boards of that size, each placed by mapping one
+anchor point of the board onto one point of the viewport: `translate(cx,cy) scale(k) translate(-ax,-ay)`
+off a `0 0` origin. Every layout below is a choice of anchor, target and scale.
+
+- **Desktop** — anchor the board center on the viewport center at `k = min(w/1920, h/1280)`.
+  Chrome rides the same transform, so it scales with the art exactly as authored.
+- **Small screens** (under 820px wide or 560px tall) — the chrome leaves the board and sits
+  unscaled against the viewport, in a band top and bottom; `fit()` measures what those bands
+  actually occupy (webfont, wrapping, `env(safe-area-inset-*)`) and gives the canvas the middle.
+  The art then fits its own extent — at its widest rotation the two planes span roughly
+  x 434…1487, y 300…1010, not the whole board — which is about 1.8× the naive whole-board fit.
+- **Backing store** — sized to `k × devicePixelRatio` (clamped to 1…2.5), i.e. the device pixels
+  the board actually covers, so it is never oversampled. Drawing stays in 1920×1280 coordinates
+  via `setTransform(dpr,0,0,dpr,0,0)`. A 3× phone would otherwise allocate 5760×3840 (~88MB).
+- **Viewport** — sized from `visualViewport` when present, refit on `resize`, `orientationchange`
+  and `document.fonts.ready`.
+
+Both pages hold the zoom: `maximum-scale=1,user-scalable=no` plus `touch-action` and
+`overscroll-behavior:none` in CSS, and — because iOS ignores the meta — `preventDefault` on
+`gesture*` and on multi-touch `touchmove`. Links keep `touch-action:manipulation` so taps stay
+instant. Deliberate trade: pinch-zoom is off on both pages.
