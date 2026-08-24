@@ -22,8 +22,10 @@
   #clock a{color:#161c33;text-decoration:none;border-bottom:1px solid rgba(22,28,51,.35);
            padding-bottom:2px;transition:border-color .15s,color .15s;}
   #clock a:hover{color:#e05c2b;border-bottom-color:#e05c2b;}
-  #mark{position:absolute;bottom:64px;left:0;right:0;display:flex;justify-content:center;}
+  #mark{position:absolute;bottom:64px;left:0;right:0;display:flex;flex-direction:column;
+        align-items:center;gap:12px;}
   #mark img{height:38px;width:auto;display:block;background:transparent;}
+  #mark .where{font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.5;}
 
   /* small screens: the chrome leaves the scaled board and sits at real size on the
      viewport, top and bottom, while the canvas keeps only the middle band. */
@@ -31,8 +33,9 @@
   .m #clock{top:calc(16px + env(safe-area-inset-top));gap:24px;font-size:11px;
             letter-spacing:.1em;}
   .m #clock span{opacity:.5;}
-  .m #mark{bottom:calc(28px + env(safe-area-inset-bottom));}
+  .m #mark{bottom:calc(28px + env(safe-area-inset-bottom));gap:8px;}
   .m #mark img{height:26px;}
+  .m #mark .where{font-size:9px;letter-spacing:.16em;}
 
   #ui{position:fixed;right:14px;bottom:14px;z-index:9;font-size:11px;color:#161c33;opacity:.42;
       background:rgba(250,248,243,.92);border:1px solid rgba(22,28,51,.18);padding:10px 12px;
@@ -50,7 +53,10 @@
   <div id="clock">
     <span id="d"></span><span id="t"></span><a href="portfolio.html">Portfolio</a>
   </div>
-  <div id="mark"><img src="straits-wordmark.png" alt="STRAITS" width="173" height="38"></div>
+  <div id="mark">
+    <img src="straits-wordmark.png" alt="STRAITS" width="173" height="38">
+    <span class="where">Los Angeles &middot; London</span>
+  </div>
 </div>
 
 <div id="ui">

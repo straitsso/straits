@@ -40,9 +40,10 @@ rebuilds the geometry; the other two are free.
 ## Display
 
 The piece is authored on a fixed 1920×1280 board; nothing inside it moves. The board and the
-chrome (the top row, the wordmark) are two overlaid boards of that size, each placed by mapping one
-anchor point of the board onto one point of the viewport: `translate(cx,cy) scale(k) translate(-ax,-ay)`
-off a `0 0` origin. Every layout below is a choice of anchor, target and scale.
+chrome (the top row, the wordmark and its location line) are two overlaid boards of that
+size, each placed by mapping one anchor point of the board onto one point of the viewport:
+`translate(cx,cy) scale(k) translate(-ax,-ay)` off a `0 0` origin. Every layout below is a
+choice of anchor, target and scale.
 
 - **Desktop** — anchor the board center on the viewport center at `k = min(w/1920, h/1280)`.
   Chrome rides the same transform, so it scales with the art exactly as authored — except that
