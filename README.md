@@ -9,11 +9,12 @@ Open `index.html` in a browser. Nothing to build. `straits-wordmark.png` sits ne
 and is the only asset the pages load (plus the Space Mono webfont).
 
 `portfolio.html` lists the Straits companies; `index.html` links to it from the top row,
-next to the date and time. It's a single centered screen on a desktop window; under 640px of
+next to the date and time. It's a single centered screen on a desktop window; under 720px of
 viewport height or 620px of width the type steps up and the page scrolls rather than
-clipping rows out of the centered box. The roster is the `COMPANIES` array at the top of that page's script —
-`name`, `what`, and an optional `url` (omit it and the row renders unlinked, marked
-"in progress").
+clipping rows out of the centered box. That height threshold tracks the roster's own
+height, so adding rows means raising it. The roster is the `COMPANIES` array at the top of
+that page's script — `name`, `what`, and an optional `url` (omit it and the row renders
+unlinked, marked "in progress").
 
 ## How it works
 

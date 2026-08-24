@@ -38,13 +38,15 @@
   .host.none{opacity:.28;}
 
   /* Short windows and phones: the roster is taller than the screen, so let it
-     scroll rather than clipping rows out of a centred, overflowing flex box. */
-  @media (max-height:640px), (max-width:620px){
+     scroll rather than clipping rows out of a centred, overflowing flex box.
+     The threshold tracks the roster's own height (currently ~710px with padding);
+     raise it when rows are added or the centred box starts clipping instead. */
+  @media (max-height:720px), (max-width:620px){
     html,body{height:auto;min-height:100%;}
     body{overflow:visible;}
     main{height:auto;justify-content:flex-start;}
   }
-  @media (max-height:640px){
+  @media (max-height:720px){
     main{padding-top:64px;padding-bottom:48px;}
   }
   @media (max-width:620px){
@@ -95,7 +97,11 @@ const COMPANIES = [
 
   { name: 'Mico',
     what: 'Watches your Google reviews, drafts each reply in your own voice, and texts it to you to send.',
-    url:  'https://mico.re' }
+    url:  'https://mico.re' },
+
+  { name: 'Maren Fertility',
+    what: 'A directory of fertility clinics in the United States — compare IVF clinics on SART-reported success rates, doctors, and cost.',
+    url:  'https://marenfertility.com' }
 ];
 
 const CHIPS = ['#e05c2b', '#f0b03c', '#2f9e8f', '#2360a5', '#161c33', '#e8455f'];
