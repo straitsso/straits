@@ -21,10 +21,11 @@
          align-items:baseline;gap:80px;font-size:20px;letter-spacing:.04em;}
   #clock a{color:#161c33;text-decoration:none;border-bottom:1px solid rgba(22,28,51,.35);
            padding-bottom:2px;transition:border-color .15s,color .15s;}
-  #clock a:hover{color:#e05c2b;border-bottom-color:#e05c2b;}
+  #clock a:hover{color:#5a7c6e;border-bottom-color:#5a7c6e;}
   #mark{position:absolute;bottom:64px;left:0;right:0;display:flex;flex-direction:column;
         align-items:center;gap:12px;}
   #mark img{height:38px;width:auto;display:block;background:transparent;}
+  #mark .tagline{font-size:11px;line-height:1.6;opacity:.6;max-width:32em;text-align:center;}
   #mark .where{font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.5;}
 
   /* small screens: the chrome leaves the scaled board and sits at real size on the
@@ -35,6 +36,7 @@
   .m #clock span{opacity:.5;}
   .m #mark{bottom:calc(28px + env(safe-area-inset-bottom));gap:8px;}
   .m #mark img{height:26px;}
+  .m #mark .tagline{font-size:10px;}
   .m #mark .where{font-size:9px;letter-spacing:.16em;}
 
   #ui{position:fixed;right:14px;bottom:14px;z-index:9;font-size:11px;color:#161c33;opacity:.42;
@@ -42,7 +44,7 @@
       display:none;grid-template-columns:auto 108px 34px;gap:6px 10px;align-items:center;transition:opacity .2s;}
   #ui:hover{opacity:1;}
   #ui.on{display:grid;}   /* debug only: ?debug=1 or the h key */
-  #ui input[type=range]{width:108px;accent-color:#e05c2b;touch-action:auto;}
+  #ui input[type=range]{width:108px;accent-color:#5a7c6e;touch-action:auto;}
   #ui b{font-weight:400;justify-self:end;font-variant-numeric:tabular-nums;}
   #ui .hint{grid-column:1/-1;opacity:.6;letter-spacing:.04em;}
 </style>
@@ -55,6 +57,7 @@
   </div>
   <div id="mark">
     <img src="straits-wordmark.png" alt="STRAITS" width="173" height="38">
+    <span class="tagline">We place engineers and commercial leaders at hard-tech companies.</span>
     <span class="where">Los Angeles &middot; London</span>
   </div>
 </div>
@@ -181,8 +184,8 @@ function field(x, y){
 /* ---------- palette ---------- */
 const PAPER   = '#faf8f3';
 const INK     = '#161c33';
-const BANDS   = ['#e05c2b', '#f0b03c', '#2f9e8f', '#2360a5', '#161c33'];
-const ACCENTS = ['#f0b03c', '#e8455f', '#2f9e8f', '#2360a5'];
+const BANDS   = ['#1e2a3a', '#3b4d5a', '#5a7c6e', '#9c9080', '#c4b89e'];
+const ACCENTS = ['#5a7c6e', '#4a6b5e', '#5a7c6e', '#4a6b5e'];
 
 function mul(hex, f){
   const n = parseInt(hex.slice(1), 16);
